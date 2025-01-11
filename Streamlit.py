@@ -1,40 +1,53 @@
+# -*- coding:utf-8 -*-
+'''
+model inference of PR(Polynomial Regression)
+'''
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler, LabelEncoder
+import pandas as pd
+import pickle
+import datetime
 import streamlit as st
-import tensorflow as tf
-import numpy as np
 
-# 加载内嵌的模型
-@st.cache_resource
-def load_model():
-    model = tf.keras.models.load_model('model.h5')  # 假设模型文件名为 'model.h5'
-    return model
+# 加载测试数据
+test_data = pd.read_csv('test.csv', header=None, skiprows=1, encoding='ISO-8859-1')
 
-# 预测功能
-def predict(model, input_data):
-    input_data = np.array([input_data])  # 转换为模型所需格式
-    prediction = model.predict(input_data)
-    return prediction
+# 对象类型列进行标签编码
+object_columns = test_data.select_dtypes(include=['object']).columns
+for col in object_columns:
+    le = LabelEncoder()
+    test_data[col] = le.fit_transform(test_data[col])
 
-def main():
-    st.title("模型预测工具")
+# 提取特征
+X_test = test_data.iloc[:, 1:-1]
+y_test = test_data.iloc[:, -1]
+
+# 生成多项式特征
+poly = PolynomialFeatures(degree=1)  # 与训练时保持一致
+X_test_poly = poly.fit_transform(X_test)
+
+# 标准化
+scaler = StandardScaler()__
+X_test_scaled = scaler.fit_transform(X_test_poly)
+
+# 预测
+with open('PRmodel.pkl', 'rb') as file:
+    loaded_model = pickle.load(file)
+
+predictions = loaded_model.predict(X_test_scaled)
+
+# 存储结果
+all_results = []
+for i, index in enumerate(X_test_scaled):
+    all_results.append({
+        'Index': index,
+        'Features': X_test_scaled[i].tolist(),
+        'Predicted': predictions[i],
+        'Actual': y_test.iloc[i]
+    })
     
-    # 加载模型
-    model = load_model()
-
-    st.write("请输入输入数据进行预测，每个参数用空格分隔：")
-    input_data_str = st.text_input("输入数据", "1.2 3.4 5.6")  # 默认示例数据
-
-    if input_data_str:
-        try:
-            # 将输入字符串转换为浮点数列表
-            input_data = list(map(float, input_data_str.split()))
-
-            # 执行预测
-            prediction = predict(model, input_data)
-
-            # 显示预测结果
-            st.write(f"预测结果: {prediction}")
-        except ValueError:
-            st.error("请输入有效的数值数据（用空格分隔）")
-
-if __name__ == "__main__":
-    main()
+print(predictions)
+prediction_df = pd.DataFrame(all_results)
+# 获取当前时间
+current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+filename = f'PR_prediction_results_{current_time}.csv'
+prediction_df.to_csv(filename, index=False)
