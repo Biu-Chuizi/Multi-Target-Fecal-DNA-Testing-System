@@ -26,7 +26,7 @@ poly = PolynomialFeatures(degree=1)  # 与训练时保持一致
 X_test_poly = poly.fit_transform(X_test)
 
 # 标准化
-scaler = StandardScaler()__
+scaler = StandardScaler()
 X_test_scaled = scaler.fit_transform(X_test_poly)
 
 # 预测

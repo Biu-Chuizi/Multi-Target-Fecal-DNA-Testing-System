@@ -6,6 +6,7 @@ from sklearn.preprocessing import PolynomialFeatures, StandardScaler, LabelEncod
 import pandas as pd
 import pickle
 import datetime
+import streamlit as st
 
 # 加载测试数据
 test_data = pd.read_csv('test.csv', header=None, skiprows=1, encoding='ISO-8859-1')
@@ -25,7 +26,7 @@ poly = PolynomialFeatures(degree=1)  # 与训练时保持一致
 X_test_poly = poly.fit_transform(X_test)
 
 # 标准化
-scaler = StandardScaler()__
+scaler = StandardScaler()
 X_test_scaled = scaler.fit_transform(X_test_poly)
 
 # 预测
